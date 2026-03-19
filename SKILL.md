@@ -1,68 +1,78 @@
 ---
 name: twexapi-cli
-description: Use this skill when working with the twexapi CLI in this repository, including installing it locally, configuring app/profile auth, previewing requests, and running read or write commands against twexapi endpoints.
+description: Use this skill when the task should be done through the twexapi command-line client, including installing the CLI, configuring app or profile auth, previewing requests, and calling twexapi endpoints through convenience commands or raw paths.
 ---
 
 # twexapi-cli
 
-This skill is for tasks that should be done through the `twexapi` command in this repository instead of re-implementing request logic by hand. It is suitable for packaging as a reusable skill because the workflow is mostly command-driven and repeatable.
+Use this skill when the task should be completed by running `twexapi` commands instead of re-implementing request logic by hand.
 
-## When to use
+## Use this skill when
 
-Use this skill when the user wants to:
+- the user wants to install or run the `twexapi` CLI
+- the user wants to configure an API key, cookie, or `auth_token`
+- the user wants to test or inspect requests with `--dry-run`
+- the user wants to call supported twexapi commands for users, tweets, search, followers, following, lists, or follow actions
+- the user knows an endpoint path and wants to call it through the generic `twexapi <path>` form
 
-- install or run this CLI locally
-- configure API keys, cookies, or auth tokens
-- inspect the generated request with `--dry-run`
-- call common twexapi endpoints for users, tweets, search, followers, following, or lists
-- perform write actions such as tweeting, liking, bookmarking, retweeting, or following
+Do not treat this skill as the main interface when the task is to edit the CLI source code itself.
 
-If the user only wants to edit the CLI source code itself, work in the repository code directly instead of treating the skill as the primary interface.
+## Default approach
 
-## Local install
+1. Confirm the CLI is available.
+2. Make sure an app config or API key is available for read requests.
+3. Make sure a saved profile or explicit cookie is available for write requests.
+4. Prefer convenience commands first.
+5. Fall back to `twexapi <path>` only when no convenience command fits.
+6. Use `--dry-run` before real write actions unless the user explicitly asks to execute them.
 
-From the repository root:
+## Install and run
+
+For normal users, prefer the published npm package:
+
+```bash
+npm install -g twexapi-cli
+twexapi --help
+```
+
+When working from this repository:
+
+```bash
+node ./bin/twexapi.js --help
+```
+
+If a local executable is needed while developing:
 
 ```bash
 npm link
 twexapi --help
 ```
 
-If a global executable is not needed, run it directly:
-
-```bash
-node ./bin/twexapi.js --help
-```
-
 Requires Node.js 18 or newer.
 
-If `twexapi` is not on `PATH`, use `node ./bin/twexapi.js ...` with the same arguments.
+## Auth rules
 
-## Core workflow
+- API keys come from `https://twexapi.io/dashboard`.
+- For one-off commands, `TWEXAPI_KEY` or `--api-key` is acceptable.
+- For repeated usage, prefer saved app configs with `auth apps add`.
+- For write actions, require either `--cookie` or a saved profile.
+- If a write action is requested without a usable profile or cookie, stop and ask for auth details instead of guessing.
 
-1. Make sure the CLI is available with `twexapi --help` or `node ./bin/twexapi.js --help`.
-2. Add an app config with an API key.
-3. Add or select a profile if the operation needs user auth.
-4. Use `--dry-run` first for risky or state-changing commands.
-5. Run the real command after confirming the path, method, and payload.
-
-## Auth setup
-
-Add an app config:
+App setup:
 
 ```bash
 twexapi auth apps add --name prod --api-key "twitterx_..."
 twexapi auth apps use prod
 ```
 
-Add a write profile from a cookie:
+Profile setup from cookie:
 
 ```bash
 twexapi auth profiles add --name founder --cookie "ct0=...; auth_token=..."
 twexapi auth profiles use founder
 ```
 
-Or create a profile from an auth token:
+Profile setup from auth token:
 
 ```bash
 twexapi auth cookie --auth-token "your_auth_token" --save-as founder
@@ -75,47 +85,44 @@ twexapi config show
 twexapi config path
 ```
 
-Default config location is `~/.twexapi/config.json`.
+## Command selection
 
-## Common command patterns
-
-Read examples:
+Prefer convenience commands such as:
 
 ```bash
-twexapi --app prod users elonmusk sama
 twexapi --app prod about elonmusk
-twexapi --app prod search tweets "founder" "ai" --count 20 --sort Latest
-twexapi --app prod followers elonmusk --count 100
+twexapi --app prod users elonmusk sama
+twexapi --app prod search users "openai" --count 20
 twexapi --app prod tweet lookup 1900000000000000000
 ```
 
-Write examples:
-
-```bash
-twexapi --app prod --profile founder tweet create --text "hello from cli"
-twexapi --app prod --profile founder tweet like 1900000000000000000
-twexapi --app prod --profile founder user follow someuser
-```
-
-Generic endpoint form:
+Use the generic path form when the endpoint is known but not wrapped:
 
 ```bash
 twexapi /twitter/elonmusk/about
 twexapi -X POST -d '["elonmusk","sama"]' /twitter/users
 ```
 
-Dry run before sending:
-
-```bash
-twexapi --app prod --dry-run users elonmusk sama
-twexapi --app prod --profile founder --dry-run tweet create --text "hello"
-```
-
-## Operating notes
+## Safety and execution rules
 
 - Put global options such as `--app`, `--profile`, `--api-key`, and `--dry-run` before the command.
-- Prefer the convenience commands when they fit; fall back to `twexapi <path>` for unsupported endpoints.
-- The CLI masks secrets in config output and dry-run previews.
-- Local media file upload is not implemented; tweet creation currently supports `--media-url`.
+- For write actions like `tweet create`, `tweet like`, `user follow`, and `list create`, prefer `--dry-run` first.
+- Only send the real write request after the user clearly wants execution.
+- The CLI masks secrets in config output and dry-run previews, but still avoid echoing raw credentials back to the user.
+- Local media file upload is not implemented; tweet creation supports `--media-url`.
 - DM commands are not included.
-- For local testing, prefer `--config-dir ./.twexapi-local` so test auth state stays isolated from the user's real config.
+
+## Recommended test flow
+
+Use an isolated config directory for local testing:
+
+```bash
+twexapi --config-dir ./.twexapi-local config show
+```
+
+Recommended order:
+
+1. Verify the CLI starts with `twexapi --help` or `node ./bin/twexapi.js --help`.
+2. Verify a read command such as `about` or `users`.
+3. Verify a raw-path request if needed.
+4. Verify write-command request construction with `--dry-run` before any real write action.
