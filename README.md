@@ -21,6 +21,22 @@ twexapi --help
 
 Requires Node.js 18 or newer.
 
+## Use as a skill
+
+Install the ClawHub skill:
+
+```bash
+npx clawhub@latest install twexapi-cli
+```
+
+Then install the CLI:
+
+```bash
+npm install -g twexapi-cli
+```
+
+In a skills-enabled agent environment, explicitly invoke the skill with `$twexapi-cli`, or ask the agent to use twexapi for installation, auth setup, dry-run previews, or endpoint calls.
+
 ## Quick start
 
 Get your API key from the twexapi dashboard:
