@@ -1,0 +1,32 @@
+{
+  "name": "twexapi-cli",
+  "version": "0.1.0",
+  "description": "CLI for twexapi with saved app auth, profiles, and xurl-style requests",
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://twexapi.io/dashboard",
+  "bugs": {
+    "url": "https://twexapi.io/dashboard"
+  },
+  "keywords": [
+    "twexapi",
+    "twitter",
+    "x",
+    "cli",
+    "api"
+  ],
+  "files": [
+    "bin/",
+    "src/",
+    "README.md"
+  ],
+  "bin": {
+    "twexapi": "./bin/twexapi.js"
+  },
+  "scripts": {
+    "check": "node ./bin/twexapi.js --help"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

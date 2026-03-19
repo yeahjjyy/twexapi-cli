@@ -1,0 +1,4 @@
+.tmp-config/
+.tmp-test/
+node_modules/
+*.tgz
