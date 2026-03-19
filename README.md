@@ -53,6 +53,14 @@ twexapi --help
 
 When a request is missing an API key, the CLI will include that URL in the error output.
 
+## Security notes
+
+- The CLI reads `TWEXAPI_KEY`, `TWEXAPI_BASE_URL`, and `TWEXAPI_CONFIG_DIR` from the environment.
+- The CLI reads and writes persistent config in `~/.twexapi/config.json` by default, or in the directory set by `--config-dir` or `TWEXAPI_CONFIG_DIR`.
+- Saved app configs may contain API keys, and saved profiles may contain cookies, `auth_token`, or `ct0` in plain JSON on disk.
+- Avoid storing long-lived credentials on shared machines or CI runners. Prefer an isolated config directory when testing.
+- `auth cookie` builds a request path containing the `auth_token`, so treat logs, traces, and network boundaries accordingly.
+
 Save an app config:
 
 ```bash

@@ -54,9 +54,13 @@ Requires Node.js 18 or newer.
 
 - API keys come from `https://twexapi.io/dashboard`.
 - For one-off commands, `TWEXAPI_KEY` or `--api-key` is acceptable.
+- The CLI also respects `TWEXAPI_BASE_URL` and `TWEXAPI_CONFIG_DIR`.
 - For repeated usage, prefer saved app configs with `auth apps add`.
 - For write actions, require either `--cookie` or a saved profile.
 - If a write action is requested without a usable profile or cookie, stop and ask for auth details instead of guessing.
+- By default the CLI reads and writes persistent config in `~/.twexapi/config.json`.
+- Saved app configs may include API keys, and saved profiles may include cookies, `auth_token`, or `ct0` in plain JSON.
+- On shared machines or CI, prefer `--config-dir` or `TWEXAPI_CONFIG_DIR` to isolate credentials.
 
 App setup:
 
@@ -109,6 +113,7 @@ twexapi -X POST -d '["elonmusk","sama"]' /twitter/users
 - For write actions like `tweet create`, `tweet like`, `user follow`, and `list create`, prefer `--dry-run` first.
 - Only send the real write request after the user clearly wants execution.
 - The CLI masks secrets in config output and dry-run previews, but still avoid echoing raw credentials back to the user.
+- `auth cookie` uses a request path that contains the `auth_token`, so be careful with logs and traces.
 - Local media file upload is not implemented; tweet creation supports `--media-url`.
 - DM commands are not included.
 
