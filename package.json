@@ -7,7 +7,7 @@
   "homepage": "https://twexapi.io/dashboard",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yeahjjyy/twexapi-cli.git"
+    "url": "git+https://github.com/yeahjjyy/twexapi-cli.git"
   },
   "bugs": {
     "url": "https://twexapi.io/dashboard"
