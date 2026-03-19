@@ -1,6 +1,6 @@
 # twexapi-cli
 
-An `xurl`-style CLI for the twexapi service.
+A command-line client for twexapi APIs.
 
 ## What it supports
 

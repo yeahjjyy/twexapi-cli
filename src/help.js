@@ -1,5 +1,5 @@
 export function printHelp() {
-  console.log(`twexapi - xurl-style CLI for twexapi
+  console.log(`twexapi - command-line client for twexapi APIs
 
 Usage:
   twexapi [global options] <path>

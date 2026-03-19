@@ -1,7 +1,7 @@
 {
   "name": "twexapi-cli",
   "version": "0.1.0",
-  "description": "CLI for twexapi with saved app auth, profiles, and xurl-style requests",
+  "description": "Command-line client for twexapi APIs with saved app auth and profiles",
   "type": "module",
   "license": "MIT",
   "homepage": "https://twexapi.io/dashboard",
