@@ -23,10 +23,23 @@ Requires Node.js 18 or newer.
 
 ## Use as a skill
 
-Install the ClawHub skill:
+Install from a GitHub skill installer:
+
+```bash
+npx skills add yeahjjyy/twexapi-cli
+```
+
+Install from ClawHub:
 
 ```bash
 npx clawhub@latest install twexapi-cli
+```
+
+Install as a Claude Code marketplace:
+
+```text
+/plugin marketplace add yeahjjyy/twexapi-cli
+/plugin install twexapi-cli@twexapi-cli
 ```
 
 Then install the CLI:
@@ -35,7 +48,11 @@ Then install the CLI:
 npm install -g twexapi-cli
 ```
 
-In a skills-enabled agent environment, explicitly invoke the skill with `$twexapi-cli`, or ask the agent to use twexapi for installation, auth setup, dry-run previews, or endpoint calls.
+In skills-enabled environments:
+
+- use `/twexapi-cli` after installing the Claude plugin command
+- use `$twexapi-cli` in Codex/OpenClaw-style environments
+- or ask the agent to use twexapi for installation, auth setup, dry-run previews, or endpoint calls
 
 ## Quick start
 

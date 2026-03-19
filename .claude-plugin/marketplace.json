@@ -1,0 +1,19 @@
+{
+  "name": "twexapi-cli",
+  "owner": {
+    "name": "yeahjjyy",
+    "url": "https://github.com/yeahjjyy"
+  },
+  "plugins": [
+    {
+      "name": "twexapi-cli",
+      "source": "./claude-plugin/twexapi-cli",
+      "description": "Install the twexapi CLI skill and a slash command for twexapi workflows.",
+      "version": "0.1.1",
+      "author": {
+        "name": "yeahjjyy",
+        "url": "https://github.com/yeahjjyy"
+      }
+    }
+  ]
+}

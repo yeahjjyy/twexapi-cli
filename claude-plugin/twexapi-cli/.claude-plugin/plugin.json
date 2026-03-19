@@ -1,0 +1,12 @@
+{
+  "name": "twexapi-cli",
+  "version": "0.1.1",
+  "description": "Claude Code plugin that installs the twexapi skill and a slash command for twexapi workflows.",
+  "author": {
+    "name": "yeahjjyy",
+    "url": "https://github.com/yeahjjyy"
+  },
+  "homepage": "https://github.com/yeahjjyy/twexapi-cli",
+  "repository": "https://github.com/yeahjjyy/twexapi-cli",
+  "license": "MIT"
+}
