@@ -42,6 +42,12 @@ Install as a Claude Code marketplace:
 /plugin install twexapi-cli@twexapi-cli
 ```
 
+For manual Claude Code installs, this repository also includes:
+
+```text
+.claude/skills/twexapi-cli/
+```
+
 Then install the CLI:
 
 ```bash
