@@ -12,14 +12,30 @@ An `xurl`-style CLI for the twexapi service.
 
 ## Install
 
-If the package has been published to npm, other users can install it globally with:
+Install globally from npm:
 
 ```bash
 npm install -g twexapi-cli
 twexapi --help
 ```
 
-If you are working from this repository before publishing, use:
+Requires Node.js 18 or newer.
+
+## Quick start
+
+Get your API key from the twexapi dashboard:
+
+[twexapi dashboard](https://twexapi.io/dashboard)
+
+Save an app config and make a first request:
+
+```bash
+twexapi auth apps add --name prod --api-key "twitterx_..."
+twexapi auth apps use prod
+twexapi --app prod about elonmusk
+```
+
+If you are developing from this repository, use:
 
 ```bash
 cd /Users/jiangyong/code/twexapi-cli
@@ -34,10 +50,6 @@ twexapi --help
 ```
 
 ## Config management
-
-Get your API key from the twexapi dashboard:
-
-[twexapi dashboard](https://twexapi.io/dashboard)
 
 When a request is missing an API key, the CLI will include that URL in the error output.
 
