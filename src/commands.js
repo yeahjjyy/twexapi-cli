@@ -157,6 +157,77 @@ async function handleSearchCommand(state, config, args) {
   exitWithError("Unknown search command.", "Use: search tweets | search users");
 }
 
+async function handleArticleCommand(state, config, args) {
+  const action = args[1];
+  if (action === "markdown") {
+    const tweetId = requireCommandValue(args[2], "Usage: twexapi article markdown <tweet_id>");
+    await performRequest(state, config, {
+      method: "GET",
+      path: `/x/article/${encodeURIComponent(tweetId)}/markdown`,
+    });
+    return;
+  }
+
+  if (action === "lookup") {
+    const tweetIds = collectPositionals(args, 2);
+    if (tweetIds.length === 0) {
+      exitWithError("Usage: twexapi article lookup <tweet_id...>");
+    }
+    await performRequest(state, config, {
+      method: "POST",
+      path: "/x/article",
+      body: tweetIds,
+    });
+    return;
+  }
+
+  exitWithError("Unknown article command.", "Use: article markdown | article lookup");
+}
+
+async function handleDmCommand(state, config, args) {
+  const action = args[1];
+  const proxy = findOption(args, "--proxy");
+
+  if (action === "history") {
+    const username = requireCommandValue(args[2], "Usage: twexapi dm history <username> [--max-id <id>]");
+    const maxId = findOption(args, "--max-id");
+    await performRequest(state, config, {
+      method: "POST",
+      path: "/twitter/dm-history",
+      body: {
+        username,
+        cookie: resolveCookieArg(args, state, config),
+        ...(maxId ? { max_id: maxId } : {}),
+        ...(proxy ? { proxy } : {}),
+      },
+    });
+    return;
+  }
+
+  if (action === "send") {
+    const username = requireCommandValue(args[2], "Usage: twexapi dm send <username> --text <content> [--media-url <url>] [--reply-to <id>]");
+    const text = requireCommandValue(findOption(args, "--text"), "Usage: twexapi dm send <username> --text <content> [--media-url <url>] [--reply-to <id>]");
+    const mediaUrl = findOption(args, "--media-url");
+    const replyTo = findOption(args, "--reply-to");
+
+    await performRequest(state, config, {
+      method: "POST",
+      path: "/twitter/send-dm",
+      body: {
+        username,
+        msg: text,
+        cookie: resolveCookieArg(args, state, config),
+        ...(mediaUrl ? { media: mediaUrl } : {}),
+        ...(replyTo ? { reply_to: replyTo } : {}),
+        ...(proxy ? { proxy } : {}),
+      },
+    });
+    return;
+  }
+
+  exitWithError("Unknown dm command.", "Use: dm history | dm send");
+}
+
 async function handleFollowersCommand(state, config, args) {
   const screenName = requireCommandValue(args[1], "Usage: twexapi followers <screen_name> [--count <n>]");
   await performRequest(state, config, {
@@ -171,6 +242,58 @@ async function handleFollowingCommand(state, config, args) {
     method: "GET",
     path: `/twitter/following/${encodeURIComponent(screenName)}/${readCountOption(args, 200)}`,
   });
+}
+
+async function handleTimelineCommand(state, config, args) {
+  const action = args[1];
+  if (action === "user") {
+    const screenName = requireCommandValue(args[2], "Usage: twexapi timeline user <screen_name> [--cursor <token>] [--count <n>]");
+    const cursor = findOption(args, "--cursor");
+    const count = readCountOption(args, 20);
+
+    await performRequest(state, config, {
+      method: "POST",
+      path: `/twitter/${encodeURIComponent(screenName)}/timeline/page`,
+      body: {
+        ...(cursor ? { next_cursor: cursor } : {}),
+        count,
+      },
+    });
+    return;
+  }
+
+  exitWithError("Unknown timeline command.", "Use: timeline user");
+}
+
+async function handleProfileCommand(state, config, args) {
+  const action = args[1];
+  if (action === "update") {
+    const name = findOption(args, "--name");
+    const description = findOption(args, "--description");
+    const location = findOption(args, "--location");
+    const website = findOption(args, "--website");
+    const profileImage = findOption(args, "--image-url");
+    const profileBanner = findOption(args, "--banner-url");
+    const proxy = findOption(args, "--proxy");
+
+    await performRequest(state, config, {
+      method: "POST",
+      path: "/twitter/profile",
+      body: {
+        cookie: resolveCookieArg(args, state, config),
+        ...(name ? { name } : {}),
+        ...(description ? { description } : {}),
+        ...(location ? { location } : {}),
+        ...(website ? { website } : {}),
+        ...(profileImage ? { profile_image: profileImage } : {}),
+        ...(profileBanner ? { profile_banner: profileBanner } : {}),
+        ...(proxy ? { proxy } : {}),
+      },
+    });
+    return;
+  }
+
+  exitWithError("Unknown profile command.", "Use: profile update");
 }
 
 async function handleListCommand(state, config, args) {
@@ -256,11 +379,19 @@ async function handleTweetCommand(state, config, args) {
     if (tweetIds.length === 0) {
       exitWithError("Usage: twexapi tweet lookup <tweet_id...>");
     }
-    await performRequest(state, config, {
+    const summary = args.includes("--summary");
+    const result = await performRequest(state, config, {
       method: "POST",
       path: "/twitter/tweets/lookup",
       body: tweetIds,
+      silent: summary,
     });
+
+    if (summary && result.data && Array.isArray(result.data.data)) {
+      for (const tweet of result.data.data) {
+        console.log(`${tweet.tweet_id}:${tweet.is_paid_promotion}`);
+      }
+    }
     return;
   }
 
@@ -401,6 +532,26 @@ export async function runCommand(state, config) {
 
   if (command === "user") {
     await handleUserCommand(state, config, state.commandArgs);
+    return true;
+  }
+
+  if (command === "article") {
+    await handleArticleCommand(state, config, state.commandArgs);
+    return true;
+  }
+
+  if (command === "dm") {
+    await handleDmCommand(state, config, state.commandArgs);
+    return true;
+  }
+
+  if (command === "profile") {
+    await handleProfileCommand(state, config, state.commandArgs);
+    return true;
+  }
+
+  if (command === "timeline") {
+    await handleTimelineCommand(state, config, state.commandArgs);
     return true;
   }
 

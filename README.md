@@ -1,13 +1,13 @@
 # twexapi-cli
 
-A command-line client for twexapi APIs.
+A command-line client for Twitter/X twexapi APIs.
 
 ## What it supports
 
 - Generic HTTP-style requests to twexapi paths
 - Saved app configs for API keys and base URLs
 - Saved profiles for cookies or `auth_token` values
-- Convenience commands for users, about, search, followers/following, lists, tweets, and follow/unfollow
+- Convenience commands for Twitter/X users, about, search, followers/following, lists, tweets, articles, dms, profile, timeline, and follow/unfollow
 - Modular code layout under `src/` so config, parsing, requests, and commands evolve independently
 
 ## Install
@@ -158,19 +158,34 @@ twexapi --app prod --profile founder --dry-run tweet create --text "hello"
 ## Convenience commands
 
 Read commands:
-
+ 
 ```bash
-twexapi --app prod users elonmusk sama
-twexapi --app prod about elonmusk
-twexapi --app prod search tweets "founder" "ai" --count 20 --sort Latest
-twexapi --app prod search users "openai" --count 20
-twexapi --app prod followers elonmusk --count 100
-twexapi --app prod following elonmusk --count 100
-twexapi --app prod list search --query "ai founders" --count 20
-twexapi --app prod list members 123456789 --count 100
-twexapi --app prod list subscribers 123456789 --count 100
-twexapi --app prod tweet lookup 1900000000000000000 1900000000000000001
-twexapi --app prod tweet replies 1900000000000000000 --count 25 --sort Recency
+# Twitter/X User and Search
+twexapi --app prod users elonmusk sama           # Lookup user profiles
+twexapi --app prod about elonmusk                # Fetch detailed user info
+twexapi --app prod search tweets "founder" "ai"  # Search for tweets
+twexapi --app prod search users "openai"         # Search for users
+twexapi --app prod followers elonmusk            # List user followers
+twexapi --app prod following elonmusk            # List user following
+ 
+# Twitter/X Lists
+twexapi --app prod list search --query "ai"      # Search for public lists
+twexapi --app prod list members 123456789        # List members of a list
+twexapi --app prod list subscribers 123456789    # List subscribers of a list
+ 
+# Twitter/X Articles & DMs
+twexapi --app prod article markdown 123          # Get x article as Markdown
+twexapi --app prod article lookup 123 456        # Batch lookup x articles
+twexapi --app prod dm history elonmusk           # Show Direct Message history
+twexapi --app prod dm send elonmusk --text "hi"  # Send a DM to a user
+ 
+# Twitter/X Profile & Timeline
+twexapi --app prod timeline user elonmusk        # Fetch user timeline page
+twexapi --app prod profile update --name "Name"  # Update your own profile
+ 
+# Twitter/X Tweets
+twexapi --app prod tweet lookup 123 --summary    # Batch tweet lookup (id:bool)
+twexapi --app prod tweet replies 123             # Get replies for a tweet
 ```
 
 Write commands:
@@ -210,4 +225,3 @@ src/utils.js           # shared helpers
 - For unsupported endpoints, use the generic `twexapi <path>` form.
 - The CLI masks secrets in config output and dry-run previews.
 - Direct local file upload for media is not included yet; the current CLI supports `--media-url` for tweet creation.
-- DM commands are not included yet because I have not found a confirmed public DM endpoint in the twexapi docs we based this CLI on.

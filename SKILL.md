@@ -1,6 +1,6 @@
 ---
 name: twexapi-cli
-description: Use this skill when the task should be done through the twexapi command-line client, including installing the CLI, configuring app or profile auth, previewing requests, and calling twexapi endpoints through convenience commands or raw paths.
+description: Use this skill when the task should be done through the twexapi command-line client, including installing the CLI, configuring Twitter/X app or profile auth, previewing requests, and calling twexapi endpoints through convenience commands or raw paths.
 ---
 
 # twexapi-cli
@@ -12,7 +12,7 @@ Use this skill when the task should be completed by running `twexapi` commands i
 - the user wants to install or run the `twexapi` CLI
 - the user wants to configure an API key, cookie, or `auth_token`
 - the user wants to test or inspect requests with `--dry-run`
-- the user wants to call supported twexapi commands for users, tweets, search, followers, following, lists, or follow actions
+- the user wants to call supported Twitter/X twexapi commands for users, tweets, articles, dms, profile, timeline, search, followers, following, lists, or follow actions
 - the user knows an endpoint path and wants to call it through the generic `twexapi <path>` form
 
 Do not treat this skill as the main interface when the task is to edit the CLI source code itself.
@@ -97,7 +97,7 @@ Prefer convenience commands such as:
 twexapi --app prod about elonmusk
 twexapi --app prod users elonmusk sama
 twexapi --app prod search users "openai" --count 20
-twexapi --app prod tweet lookup 1900000000000000000
+twexapi --app prod tweet lookup 1900000000000000000 --summary
 ```
 
 Use the generic path form when the endpoint is known but not wrapped:
@@ -115,7 +115,6 @@ twexapi -X POST -d '["elonmusk","sama"]' /twitter/users
 - The CLI masks secrets in config output and dry-run previews, but still avoid echoing raw credentials back to the user.
 - `auth cookie` uses a request path that contains the `auth_token`, so be careful with logs and traces.
 - Local media file upload is not implemented; tweet creation supports `--media-url`.
-- DM commands are not included.
 
 ## Recommended test flow
 
