@@ -1,20 +1,30 @@
+import fs from "node:fs/promises";
+
 import {
   collectPositionals,
   exitWithError,
   findAllOptions,
   findOption,
   hasFlag,
+  normalizePath,
+  printJson,
   readCountOption,
   requireCommandValue,
+  sanitizeForOutput,
 } from "./utils.js";
 import {
   handleAuthAppsCommand,
   handleAuthProfilesCommand,
   handleConfigCommand,
   resolveCookieArg,
+  resolveAppState,
   saveConfig,
 } from "./config.js";
 import { performRequest } from "./request.js";
+
+const ARTICLE_PUBLISH_MD_USAGE = "Usage: twexapi article publish-md <file.md> --title <title> [--cover-image <url_or_path>] [--visibility Public|Followers|Mentioned]";
+const ARTICLE_ID_PLACEHOLDER = "{article_id_from_step_1}";
+const ARTICLE_VISIBILITIES = new Set(["Public", "Followers", "Mentioned"]);
 
 function tweetActionBody(args, state, config) {
   const proxy = findOption(args, "--proxy");
@@ -181,7 +191,152 @@ async function handleArticleCommand(state, config, args) {
     return;
   }
 
-  exitWithError("Unknown article command.", "Use: article markdown | article lookup");
+  if (action === "publish-md") {
+    await handleArticlePublishMdCommand(state, config, args);
+    return;
+  }
+
+  exitWithError("Unknown article command.", "Use: article markdown | article lookup | article publish-md");
+}
+
+function articlePublishMdRequests(articleId, data) {
+  const { cookie, coverImage, markdown, title, visibility } = data;
+  const articlePath = `/x/articles/${articleId}`;
+  const requests = [
+    {
+      name: "create_draft",
+      method: "POST",
+      path: "/x/articles/draft",
+      body: { cookie },
+    },
+  ];
+
+  if (coverImage) {
+    requests.push({
+      name: "set_cover",
+      method: "PUT",
+      path: `${articlePath}/cover`,
+      body: {
+        cookie,
+        cover_image: coverImage,
+      },
+    });
+  }
+
+  requests.push(
+    {
+      name: "set_title",
+      method: "PUT",
+      path: `${articlePath}/title`,
+      body: {
+        cookie,
+        title,
+      },
+    },
+    {
+      name: "set_content",
+      method: "PUT",
+      path: `${articlePath}/content`,
+      body: {
+        cookie,
+        markdown,
+      },
+    },
+    {
+      name: "publish",
+      method: "POST",
+      path: `${articlePath}/publish`,
+      body: {
+        cookie,
+        visibility,
+      },
+    },
+  );
+
+  return requests;
+}
+
+function buildDryRunPreview(state, config, request) {
+  const appState = resolveAppState(state, config);
+  const target = normalizePath(request.path);
+  const url = /^https?:\/\//i.test(target) ? target : `${appState.baseUrl}${target}`;
+  const headers = {
+    Accept: "application/json",
+    ...state.headers,
+    ...request.headers,
+  };
+
+  if (appState.apiKey) {
+    headers.Authorization = `Bearer ${appState.apiKey}`;
+  }
+
+  return sanitizeForOutput({
+    name: request.name,
+    method: request.method,
+    url,
+    headers,
+    ...(request.body !== undefined ? { body: request.body } : {}),
+  });
+}
+
+function articleIdFromDraftResponse(response) {
+  const articleId = response.data?.data?.article_id;
+  if (!articleId) {
+    exitWithError("Draft response did not contain article_id.");
+  }
+  return articleId;
+}
+
+async function readMarkdownFile(filePath) {
+  try {
+    return await fs.readFile(filePath, "utf8");
+  } catch (error) {
+    exitWithError("Failed to read markdown file.", error.message);
+  }
+}
+
+async function handleArticlePublishMdCommand(state, config, args) {
+  const filePath = requireCommandValue(args[2], ARTICLE_PUBLISH_MD_USAGE);
+  const title = requireCommandValue(findOption(args, "--title"), ARTICLE_PUBLISH_MD_USAGE);
+  const coverImage = findOption(args, "--cover-image");
+  const visibility = findOption(args, "--visibility") || "Public";
+
+  if (!ARTICLE_VISIBILITIES.has(visibility)) {
+    exitWithError(`Invalid --visibility value: ${visibility}`, "Use: Public | Followers | Mentioned");
+  }
+
+  const markdown = await readMarkdownFile(filePath);
+  const cookie = resolveCookieArg(args, state, config);
+  const data = {
+    cookie,
+    coverImage,
+    markdown,
+    title,
+    visibility,
+  };
+
+  if (state.dryRun) {
+    printJson({
+      articleId: ARTICLE_ID_PLACEHOLDER,
+      steps: articlePublishMdRequests(ARTICLE_ID_PLACEHOLDER, data).map((request) => buildDryRunPreview(state, config, request)),
+    });
+    return;
+  }
+
+  const draftRequest = articlePublishMdRequests("", data)[0];
+  const draftResponse = await performRequest(state, config, {
+    ...draftRequest,
+    silent: true,
+  });
+  const articleId = articleIdFromDraftResponse(draftResponse);
+  const remainingRequests = articlePublishMdRequests(encodeURIComponent(articleId), data).slice(1);
+
+  for (const [index, request] of remainingRequests.entries()) {
+    await performRequest(state, config, {
+      ...request,
+      silent: index < remainingRequests.length - 1,
+    });
+  }
 }
 
 async function handleDmCommand(state, config, args) {
@@ -263,6 +418,34 @@ async function handleTimelineCommand(state, config, args) {
   }
 
   exitWithError("Unknown timeline command.", "Use: timeline user");
+}
+
+async function handleTrendingCommand(state, config, args) {
+  const action = args[1];
+
+  if (action === "tweets") {
+    const country = requireCommandValue(findOption(args, "--country"), "Usage: twexapi trending tweets --country <country> [--topic <topic>] [--content <content>] [--count <n>]");
+    const topic = findOption(args, "--topic");
+    const content = findOption(args, "--content");
+    const count = readCountOption(args, 20);
+    const params = new URLSearchParams({ country });
+
+    if (topic) {
+      params.set("topic", topic);
+    }
+    if (content) {
+      params.set("content", content);
+    }
+    params.set("count", String(count));
+
+    await performRequest(state, config, {
+      method: "GET",
+      path: `/twitter/global-trending/tweets?${params.toString()}`,
+    });
+    return;
+  }
+
+  exitWithError("Unknown trending command.", "Use: trending tweets");
 }
 
 async function handleProfileCommand(state, config, args) {
@@ -552,6 +735,11 @@ export async function runCommand(state, config) {
 
   if (command === "timeline") {
     await handleTimelineCommand(state, config, state.commandArgs);
+    return true;
+  }
+
+  if (command === "trending") {
+    await handleTrendingCommand(state, config, state.commandArgs);
     return true;
   }
 

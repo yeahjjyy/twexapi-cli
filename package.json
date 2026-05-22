@@ -28,7 +28,8 @@
     "twexapi": "./bin/twexapi.js"
   },
   "scripts": {
-    "check": "node ./bin/twexapi.js --help"
+    "check": "node ./bin/twexapi.js --help",
+    "test": "node --test"
   },
   "engines": {
     "node": ">=18"

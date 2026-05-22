@@ -21,12 +21,16 @@ Usage:
   # Twitter/X Articles and DMs
   twexapi [global options] article markdown <tweet_id>                    # Fetch article as Markdown
   twexapi [global options] article lookup <tweet_id...>                   # Batch article details
+  twexapi [global options] article publish-md <file.md> --title <title>   # Publish Markdown as an X article
   twexapi [global options] dm history <username> [--max-id <id>]          # Fetch DM history
   twexapi [global options] dm send <username> --text <content>            # Send a Direct Message
 
   # Twitter/X Profile and Timeline
   twexapi [global options] profile update [--name <n>] [--desc <t>] ...   # Update your profile info
   twexapi [global options] timeline user <screen_name> [--cursor <c>]     # Fetch user timeline page
+
+  # Twitter/X Global Trending
+  twexapi [global options] trending tweets --country <country>            # Fetch global trending tweets
 
   # Twitter/X Tweets
   twexapi [global options] tweet create --text <c> [--media-url <u>]      # Create a new tweet
@@ -50,7 +54,9 @@ Usage:
 Examples:
   twexapi --app prod users elonmusk sama
   twexapi --profile founder tweet create --text "hello world" --media-url "https://example.com/image.jpg"
+  twexapi --app prod --profile founder article publish-md ./article.md --title "Launch Notes" --cover-image "https://example.com/cover.jpg"
   twexapi --profile founder tweet like 1900000000000000000
+  twexapi --app prod trending tweets --country "United States" --topic "Sports" --content "NFL" --count 50
   twexapi --app prod -X POST -d '["1900000000000000000"]' /twitter/tweets/lookup # Twitter/X tweet lookup
   twexapi auth apps add --name prod --api-key "twitterx_..."
   twexapi auth profiles add --name founder --cookie "ct0=...; auth_token=..."

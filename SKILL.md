@@ -12,7 +12,7 @@ Use this skill when the task should be completed by running `twexapi` commands i
 - the user wants to install or run the `twexapi` CLI
 - the user wants to configure an API key, cookie, or `auth_token`
 - the user wants to test or inspect requests with `--dry-run`
-- the user wants to call supported Twitter/X twexapi commands for users, tweets, articles, dms, profile, timeline, search, followers, following, lists, or follow actions
+- the user wants to call supported Twitter/X twexapi commands for users, tweets, articles, dms, profile, timeline, global trending tweets, search, followers, following, lists, or follow actions
 - the user knows an endpoint path and wants to call it through the generic `twexapi <path>` form
 
 Do not treat this skill as the main interface when the task is to edit the CLI source code itself.
@@ -97,6 +97,8 @@ Prefer convenience commands such as:
 twexapi --app prod about elonmusk
 twexapi --app prod users elonmusk sama
 twexapi --app prod search users "openai" --count 20
+twexapi --app prod trending tweets --country "United States" --topic "Sports" --count 50
+twexapi --app prod --profile founder article publish-md ./article.md --title "Launch Notes"
 twexapi --app prod tweet lookup 1900000000000000000 --summary
 ```
 
@@ -110,7 +112,7 @@ twexapi -X POST -d '["elonmusk","sama"]' /twitter/users
 ## Safety and execution rules
 
 - Put global options such as `--app`, `--profile`, `--api-key`, and `--dry-run` before the command.
-- For write actions like `tweet create`, `tweet like`, `user follow`, and `list create`, prefer `--dry-run` first.
+- For write actions like `tweet create`, `tweet like`, `user follow`, `list create`, and `article publish-md`, prefer `--dry-run` first.
 - Only send the real write request after the user clearly wants execution.
 - The CLI masks secrets in config output and dry-run previews, but still avoid echoing raw credentials back to the user.
 - `auth cookie` uses a request path that contains the `auth_token`, so be careful with logs and traces.

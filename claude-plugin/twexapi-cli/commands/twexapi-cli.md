@@ -12,6 +12,8 @@ Prefer this command when the user wants to:
 - configure API keys, app profiles, or auth profiles
 - inspect request construction with `--dry-run`
 - call twexapi endpoints with convenience commands or raw paths
+- fetch global trending tweets with `trending tweets`
+- publish Markdown files as X articles with `article publish-md`
 
 Default behavior:
 
